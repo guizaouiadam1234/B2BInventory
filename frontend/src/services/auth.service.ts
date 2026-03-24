@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api/auth/';
+const AUTH_API_URL = import.meta.env.VITE_API_URL_AUTH || 'http://localhost:8080/api/auth/';
 
 class AuthService {
     async login(username: string, password: string){
         try {
-        const response = await axios.post(API_URL + 'login', {
+        const response = await axios.post(AUTH_API_URL + 'login', {
             username,
             password
         });
@@ -21,7 +21,7 @@ class AuthService {
     }
     async register(username: string, password: string){
         try {
-            const response = await axios.post(API_URL + 'register', {
+            const response = await axios.post(AUTH_API_URL + 'register', {
                 username,
                 password
             });
