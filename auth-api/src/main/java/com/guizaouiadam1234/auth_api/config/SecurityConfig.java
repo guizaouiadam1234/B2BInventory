@@ -7,6 +7,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -15,21 +19,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Disable CSRF (Cross-Site Request Forgery) 
-            // This is mandatory for stateless APIs, otherwise POST requests are blocked
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // AJOUT ICI
             .csrf(csrf -> csrf.disable())
-            
-            // 2. Configure which URLs are public vs private
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow everyone to Register/Login
-                .requestMatchers("/h2-console/**").permitAll() // Allow access to H2
-                .anyRequest().authenticated() // Lock everything else
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated()
             )
-            
-            // 3. This line is required to allow the H2 console to load in a browser frame
             .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
+    }
+
+    // AJOUT DE CE BEAN POUR LES AUTORISATIONS
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Autorise tout pour le test, ou mets ton URL Vercel précise plus tard
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
